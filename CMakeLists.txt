@@ -44,6 +44,10 @@ set(BUILD_TESTS OFF CACHE BOOL "Disable tests" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "Disable tests" FORCE)
 set(ENABLE_TESTS OFF CACHE BOOL "Disable tests" FORCE)
 
+# Mencegah SKSE Menu Framework mencoba memproses target/contoh yang memicu error source_group
+set(SMF_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SMF_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+
 FetchContent_Declare(
     SKSEMenuFrameworkSDK
     GIT_REPOSITORY https://github.com/QTR-Modding/SKSE-Menu-Framework-3.git
