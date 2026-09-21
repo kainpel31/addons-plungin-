@@ -53,11 +53,12 @@ FetchContent_Declare(
     GIT_TAG master
     GIT_SHALLOW TRUE
 )
-FetchContent_Populate(SKSEMenuFrameworkSDK)
+FetchContent_MakeAvailable(SKSEMenuFrameworkSDK)
 
 find_package(spdlog REQUIRED CONFIG)
 find_package(nlohmann_json REQUIRED CONFIG)
 find_package(xbyak REQUIRED CONFIG)
+find_package(rapidcsv REQUIRED CONFIG)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
