@@ -7,6 +7,7 @@
     "xbyak",
     "rapidcsv",
     "directxtk",
-    "nanosvg"
+    "nanosvg",
+    "zlib"
   ]
 }
