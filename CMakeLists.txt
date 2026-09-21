@@ -36,17 +36,9 @@ include(FetchContent)
 
 set(BUILD_TESTS OFF CACHE BOOL "Disable CommonLibSSE-NG tests" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "Disable project tests" FORCE)
-set(ENABLE_TESTS OFF CACHE BOOL "Disable project tests" FORCE)
+set(ENABLE_TESTS OFF CACHE BOOL "Disable project tests`" FORCE)
 
-FetchContent_Declare(
-    CommonLibSSE
-    GIT_REPOSITORY https://github.com/CharmedBaryon/CommonLibSSE-NG.git
-    GIT_TAG main
-    GIT_SHALLOW TRUE
-    GIT_SUBMODULES_RECURSE TRUE
-)
-FetchContent_MakeAvailable(CommonLibSSE)
-
+# Cukup muat SKSE Menu Framework (yang di dalamnya sudah mencakup CommonLibSSE/ImGui yang terintegrasi)
 FetchContent_Declare(
     SKSEMenuFrameworkSDK
     GIT_REPOSITORY https://github.com/QTR-Modding/SKSE-Menu-Framework-3.git
@@ -59,6 +51,7 @@ find_package(spdlog REQUIRED CONFIG)
 find_package(nlohmann_json REQUIRED CONFIG)
 find_package(xbyak REQUIRED CONFIG)
 find_package(rapidcsv REQUIRED CONFIG)
+find_package(nanosvg REQUIRED CONFIG)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
@@ -85,6 +78,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     nlohmann_json::nlohmann_json
     spdlog::spdlog
     xbyak::xbyak
+    nanosvg::nanosvg
 )
 
 if (MSVC)
