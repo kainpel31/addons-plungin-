@@ -4,6 +4,7 @@
   "dependencies": [
     "spdlog",
     "nlohmann-json",
-    "xbyak"
+    "xbyak",
+    "rapidcsv"
   ]
 }
