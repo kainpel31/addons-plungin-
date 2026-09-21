@@ -5,6 +5,7 @@
     "spdlog",
     "nlohmann-json",
     "xbyak",
-    "rapidcsv"
+    "rapidcsv",
+    "directxtk"
   ]
 }
