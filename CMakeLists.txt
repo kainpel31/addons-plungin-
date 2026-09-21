@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.21)
 
+if(POLICY CMP0092)
+    cmake_policy(SET CMP0092 NEW)
+endif()
+if(POLICY CMP0169)
+    cmake_policy(SET CMP0169 OLD)
+endif()
+
 option(COPY_BUILD "Copy the build output to the Skyrim directory." TRUE)
 
 macro(set_from_environment VARIABLE)
@@ -20,7 +27,6 @@ endif()
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "")
 set(MMO_HOTBAR_VERSION "1.0.0" CACHE STRING "Project version override")
 
-# --- Identitas Mod ---
 set(AUTHOR_NAME "Ortriniaz")
 set(PRODUCT_NAME "MMOHotbar")
 set(BEAUTIFUL_NAME "MMO Hotbar")
@@ -34,11 +40,10 @@ endif ()
 
 include(FetchContent)
 
-set(BUILD_TESTS OFF CACHE BOOL "Disable CommonLibSSE-NG tests" FORCE)
-set(BUILD_TESTING OFF CACHE BOOL "Disable project tests" FORCE)
-set(ENABLE_TESTS OFF CACHE BOOL "Disable project tests`" FORCE)
+set(BUILD_TESTS OFF CACHE BOOL "Disable tests" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "Disable tests" FORCE)
+set(ENABLE_TESTS OFF CACHE BOOL "Disable tests" FORCE)
 
-# Cukup muat SKSE Menu Framework (yang di dalamnya sudah mencakup CommonLibSSE/ImGui yang terintegrasi)
 FetchContent_Declare(
     SKSEMenuFrameworkSDK
     GIT_REPOSITORY https://github.com/QTR-Modding/SKSE-Menu-Framework-3.git
@@ -52,6 +57,7 @@ find_package(nlohmann_json REQUIRED CONFIG)
 find_package(xbyak REQUIRED CONFIG)
 find_package(rapidcsv REQUIRED CONFIG)
 find_package(nanosvg REQUIRED CONFIG)
+find_package(ZLIB REQUIRED)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
@@ -79,20 +85,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     spdlog::spdlog
     xbyak::xbyak
     nanosvg::nanosvg
+    ZLIB::ZLIB
 )
 
 if (MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /sdl /utf-8 /Zi /permissive- /W4 /WX /external:anglebrackets /external:W0)
     target_link_options(${PROJECT_NAME} PRIVATE /WX "$<$<CONFIG:RELEASE>:/INCREMENTAL:NO;/OPT:REF;/OPT:ICF;/DEBUG:FULL>")
-endif ()
-
-if (COPY_BUILD)
-    set_from_environment(STB_WIDGETS_DEPLOY_DIR)
-    if (NOT DEFINED STB_WIDGETS_DEPLOY_DIR)
-        set(STB_WIDGETS_DEPLOY_DIR "C:/Skyrim/[STB] Mod Organizer/mods/MMO Hotbar/skse/plugins" CACHE PATH "Plugin deployment directory")
-    endif ()
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${PROJECT_NAME}> "${STB_WIDGETS_DEPLOY_DIR}"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_PDB_FILE:${PROJECT_NAME}> "${STB_WIDGETS_DEPLOY_DIR}"
-    )
 endif ()
