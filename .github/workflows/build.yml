@@ -1,0 +1,77 @@
+name: Build Skyrim SKSE Plugin
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+    env:
+      VCPKG_ROOT: C:/vcpkg
+      VCPKG_DEFAULT_TRIPLET: x64-windows-static
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Bootstrap vcpkg
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "$env:VCPKG_ROOT")) {
+            throw "vcpkg not found at $env:VCPKG_ROOT"
+          }
+          if (-not (Test-Path "$env:VCPKG_ROOT\vcpkg.exe")) {
+            throw "vcpkg.exe not found at $env:VCPKG_ROOT\vcpkg.exe"
+          }
+
+      - name: Cache vcpkg and Build Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:/vcpkg/installed
+            ${{ github.workspace }}/build/_deps
+          key: ${{ runner.os }}-vcpkg-static-cache-${{ hashFiles('CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-static-cache-
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          & "$env:VCPKG_ROOT\vcpkg.exe" install rapidcsv:x64-windows-static spdlog:x64-windows-static catch2:x64-windows-static nlohmann-json:x64-windows-static xbyak:x64-windows-static
+
+      - name: Configure CMake
+        shell: pwsh
+        run: |
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64 `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DENABLE_TESTS=OFF `
+            -DBUILD_TESTING=OFF
+
+      - name: Build Project
+        shell: pwsh
+        run: |
+          cmake --build build --config Release --parallel
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MMO-Hotbar-Plugin
+          path: |
+            build/Release/MMOHotbar.dll
+            build/Release/MMOHotbar.pdb
+          if-no-files-found: error
+          compression-level: 6
