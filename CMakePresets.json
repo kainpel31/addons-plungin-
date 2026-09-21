@@ -1,0 +1,75 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "displayName": "Visual Studio 2022 x64",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "ENABLE_TESTS": "ON",
+        "COMMONLIB_PREBUILT_MULTICONFIG": "ON"
+      }
+    },
+    {
+      "name": "default",
+      "inherits": "base",
+      "displayName": "Default (Release, CommonLibSSE-NG v9.0.0 fetched)"
+    },
+    {
+      "name": "debug",
+      "inherits": "base",
+      "displayName": "Debug"
+    },
+    {
+      "name": "local-commonlib",
+      "inherits": "base",
+      "displayName": "Use a local CommonLibSSE-NG checkout from $env{COMMONLIB_SSE_FOLDER}",
+      "cacheVariables": {
+        "COMMONLIB_SSE_FOLDER": "$env{COMMONLIB_SSE_FOLDER}",
+        "COMMONLIB_PREBUILT_MULTICONFIG": "OFF"
+      }
+    },
+    {
+      "name": "deploy",
+      "inherits": "base",
+      "displayName": "Release plus a copy into the game's SKSE/Plugins",
+      "cacheVariables": {
+        "MMOHOTBAR_COPY_BUILD": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "release",
+      "configurePreset": "default",
+      "configuration": "Release"
+    },
+    {
+      "name": "debug-build",
+      "configurePreset": "debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "deploy",
+      "configurePreset": "deploy",
+      "configuration": "Release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "release",
+      "configurePreset": "default",
+      "configuration": "Release"
+    }
+  ]
+}

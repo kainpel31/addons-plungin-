@@ -1,13 +1,17 @@
 {
-  "name": "mmo-hotbar-addon",
-  "version": "1.0.0",
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "mmo-hotbar",
+  "version-string": "1.0.0",
+  "description": "SKSE add-on for STB Hotkey System that draws an MMORPG-style hotbar",
+  "homepage": "https://github.com/",
+  "license": "GPL-3.0-only",
+  "supports": "windows & x64",
+  "builtin-baseline": "9e593bb18ea69cc5095e012465dcd675a822ed0d",
   "dependencies": [
-    "spdlog",
-    "nlohmann-json",
-    "xbyak",
-    "rapidcsv",
+    "catch2",
     "directxtk",
-    "nanosvg",
-    "zlib"
+    "rapidcsv",
+    "spdlog",
+    "xbyak"
   ]
 }
