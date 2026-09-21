@@ -49,7 +49,7 @@ jobs:
       - name: Install dependencies
         shell: pwsh
         run: |
-          & "$env:VCPKG_ROOT\vcpkg.exe" install rapidcsv:x64-windows-static spdlog:x64-windows-static catch2:x64-windows-static nlohmann-json:x64-windows-static xbyak:x64-windows-static
+          & "$env:VCPKG_ROOT\vcpkg.exe" install spdlog:x64-windows-static nlohmann-json:x64-windows-static xbyak:x64-windows-static
 
       - name: Configure CMake
         shell: pwsh
@@ -69,7 +69,7 @@ jobs:
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: MMO-Hotbar-Plugin
+          name: MMOHotbar-Plugin
           path: |
             build/Release/MMOHotbar.dll
             build/Release/MMOHotbar.pdb
