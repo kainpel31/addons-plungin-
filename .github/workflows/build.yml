@@ -12,7 +12,11 @@ jobs:
     runs-on: windows-2022
     env:
       VCPKG_ROOT: C:/vcpkg
-      VCPKG_DEFAULT_TRIPLET: x64-windows-static
+      # x64-windows, not x64-windows-static: the plugin uses the dynamic CRT (/MD), which is
+      # what SKSE plugins and the game use, and it is the only CRT that lets CommonLibSSE-NG's
+      # prebuilt bundle link (the bundle is /MD; on a static-CRT triplet the CMake side falls
+      # back to a ~16 minute source build).
+      VCPKG_DEFAULT_TRIPLET: x64-windows
 
     steps:
       - name: Checkout Repository
@@ -41,23 +45,33 @@ jobs:
         with:
           path: |
             C:/vcpkg/installed
+            ${{ github.workspace }}/vcpkg_installed
             ${{ github.workspace }}/build/_deps
-          key: ${{ runner.os }}-vcpkg-static-cache-${{ hashFiles('CMakeLists.txt') }}
+          key: ${{ runner.os }}-vcpkg-dynamic-${{ hashFiles('vcpkg.json', 'CMakeLists.txt') }}
           restore-keys: |
-            ${{ runner.os }}-vcpkg-static-cache-
+            ${{ runner.os }}-vcpkg-dynamic-
 
       - name: Install dependencies
         shell: pwsh
         run: |
-          & "$env:VCPKG_ROOT\vcpkg.exe" install
+          & "$env:VCPKG_ROOT\vcpkg.exe" install --triplet x64-windows
 
       - name: Configure CMake
         shell: pwsh
         run: |
+          # VCPKG_INSTALLED_DIR points at what the step above produced: in manifest mode the
+          # toolchain would otherwise look in build/vcpkg_installed and reinstall everything.
+          # $env:GITHUB_WORKSPACE is used rather than a workflow expression so the script
+          # parses as valid PowerShell on its own; both resolve to the same directory.
+          # COMMONLIB_PREBUILT_MULTICONFIG lets CommonLibSSE-NG use its published prebuilt
+          # bundle under this multi-config generator; without it the bundle is skipped and the
+          # ~16 minute source build runs instead.
           cmake -S . -B build -G "Visual Studio 17 2022" -A x64 `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DVCPKG_INSTALLED_DIR="$env:GITHUB_WORKSPACE\vcpkg_installed" `
+            -DCOMMONLIB_PREBUILT_MULTICONFIG=ON `
             -DENABLE_TESTS=OFF `
             -DBUILD_TESTING=OFF
 
