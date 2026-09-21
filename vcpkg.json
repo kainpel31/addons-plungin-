@@ -1,0 +1,9 @@
+{
+  "name": "mmo-hotbar-addon",
+  "version": "1.0.0",
+  "dependencies": [
+    "spdlog",
+    "nlohmann_json",
+    "xbyak"
+  ]
+}
