@@ -72,13 +72,18 @@ jobs:
             -DVCPKG_TARGET_TRIPLET=x64-windows `
             -DVCPKG_INSTALLED_DIR="$env:GITHUB_WORKSPACE\vcpkg_installed" `
             -DCOMMONLIB_PREBUILT_MULTICONFIG=ON `
-            -DENABLE_TESTS=OFF `
-            -DBUILD_TESTING=OFF
+            -DENABLE_TESTS=ON `
+            -DBUILD_TESTING=ON
 
       - name: Build Project
         shell: pwsh
         run: |
           cmake --build build --config Release --parallel
+
+      - name: Run Unit Tests
+        shell: pwsh
+        run: |
+          ctest --test-dir build -C Release --output-on-failure
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
