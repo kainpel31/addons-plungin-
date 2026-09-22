@@ -1,9 +1,22 @@
 #include "PCH.h"
 
+#include "BindingRegistry.h"
+#include "StbAdapter.h"
+
 namespace
 {
 	// 4-character unique id for this plugin's co-save record ("MMOH").
 	constexpr std::uint32_t kSerializationUniqueID = 0x4D4D4F48;
+
+	// GameState owns the live snapshot: STB api pointer + BindingRegistry.
+	// Resolved on kPostLoad (every plugin loaded by then), swept on kDataLoaded.
+	struct GameState
+	{
+		const void* stb = nullptr;
+		MMOHotbar::BindingRegistry registry;
+	};
+
+	GameState g_state;
 
 	void InitializeLog()
 	{
@@ -36,13 +49,34 @@ namespace
 		logger::info("runtime: {} {} | address library: yes", runtime, REL::Module::get().version().string());
 	}
 
+	void SweepIntoRegistry()
+	{
+		if (!g_state.stb) {
+			g_state.registry.SetHasStb(false);
+			return;
+		}
+		const auto stats = g_state.registry.Rebuild(MMOHotbar::SweepSingleKeys(g_state.stb));
+		g_state.registry.SetHasStb(true);
+		logger::info("bindings: sweep done (rows={}, added={}, removed={})",
+		             g_state.registry.Size(), stats.added, stats.removed);
+	}
+
 	void OnSKSEMessage(SKSE::MessagingInterface::Message* a_message)
 	{
 		switch (a_message->type) {
+		case SKSE::MessagingInterface::kPostLoad:
+			// Every plugin is loaded by now: resolve the STB v1 API. Null is fine
+			// (STB absent / too old / refused the version) and just leaves the
+			// hotbar empty; nothing below may assume the pointer is valid.
+			g_state.stb = MMOHotbar::ResolveStbApi();
+			g_state.registry.SetHasStb(g_state.stb != nullptr);
+			logger::info("STB Hotkey System API: {}", g_state.stb ? "resolved (v1)" : "absent, hotbar stays empty");
+			break;
+
 		case SKSE::MessagingInterface::kDataLoaded:
-			// M1 resolves the STB Hotkey System API and starts the binding registry here.
-			// Everything the hotbar shows comes from that snapshot, so it has to exist before
-			// the first frame is drawn.
+			// M1: layer 1 snapshot. Everything the hotbar shows comes from this
+			// registry, so it has to exist before the first frame is drawn.
+			SweepIntoRegistry();
 			break;
 
 		case SKSE::MessagingInterface::kPostLoadGame:

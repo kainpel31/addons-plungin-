@@ -213,7 +213,11 @@ if(ENABLE_TESTS AND MMOHOTBAR_TEST_SOURCES)
 	include(CTest)
 	include(Catch)
 
-	add_executable(${PROJECT_NAME}Tests ${MMOHOTBAR_TEST_SOURCES})
+	add_executable(${PROJECT_NAME}Tests ${MMOHOTBAR_TEST_SOURCES}
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/KeyLabel.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/ItemClassifier.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/ItemClassifier2.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/BindingRegistry.cpp")
 	target_include_directories(
 		${PROJECT_NAME}Tests
 		PRIVATE

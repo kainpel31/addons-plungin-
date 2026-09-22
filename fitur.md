@@ -8,8 +8,8 @@
 
 | Area | Status | Keterangan |
 |------|--------|------------|
-| M0 scaffold + CI hijau | 🟡 Hampir selesai | File ada semua; build CI sempat gagal C1189 di `cmake_pch.cxx`, sudah diperbaiki di `include/PCH.h`, menunggu push + run ulang |
-| M1 data layer (StbApi, BindingRegistry 3 lapis, KeyLabel, ItemClassifier) | ⬜ Belum | Desain dikunci, belum ada kode |
+| M0 scaffold + CI hijau | ✅ Selesai | CI hijau, artifact `MMOHotbar.dll` + `.pdb` (belum uji in-game) |
+| M1 data layer (StbApi, BindingRegistry 3 lapis, KeyLabel, ItemClassifier) | 🟡 Kode ditulis, menunggu CI | `include/KeyLabel.h`, `include/ItemClassifier.h`, `include/BindingRegistry.h`, `src/KeyLabel.cpp`, `src/ItemClassifier.cpp`, `src/ItemClassifier2.cpp`, `src/BindingRegistry.cpp`, `src/StbAdapter.{h,cpp}` + `tests/DataLayer.cpp`; CI kini juga menjalankan `ctest` |
 | M2 HUD hotbar ImGui | ⬜ Belum | Menunggu M1 |
 | M3 settings page | ⬜ Belum | Menunggu M2 stabil |
 | M4 slot assignment page | ⬜ Belum | Menunggu M2 stabil |
@@ -21,7 +21,7 @@ Legenda: ✅ selesai · 🟡 berjalan · ⬜ belum · ⏸️ ditunda sengaja.
 
 ## Detail per milestone
 
-### M0 — Scaffold + CI hijau pertama (🟡 berjalan)
+### M0 — Scaffold + CI hijau pertama (✅ selesai, 2026-09-22)
 - [x] `CMakeLists.txt` target `MMOHotbar` (C++23, output `build/Release/MMOHotbar.dll`)
 - [x] `vcpkg.json` (spdlog, rapidcsv, directxtk, xbyak, simpleini, nlohmann-json, catch2)
 - [x] FetchContent `alandtse/CommonLibSSE-NG@v9.0.0` + opsi `COMMONLIB_SSE_FOLDER` lokal + `COMMONLIB_PREBUILT_MULTICONFIG`
@@ -29,18 +29,17 @@ Legenda: ✅ selesai · 🟡 berjalan · ⬜ belum · ⏸️ ditunda sengaja.
 - [x] `src/Plugin.cpp` — init log, `SKSE::Init`, klaim co-save ID, listener `kDataLoaded`/`kPostLoadGame`/`kNewGame`, log runtime SE/AE/VR
 - [x] `dist/SKSE/Plugins/MMOHotbar.ini`, `.gitignore`, `.clang-format`, `CMakePresets.json`
 - [x] `build.yml` — triplet `x64-windows`, cache `vcpkg_installed` + `build/_deps`
-- [ ] CI hijau + artifact `MMOHotbar.dll` + `.pdb` (menunggu push dari kamu — tidak ada `git` di mesin ini)
+- [x] CI hijau + artifact `MMOHotbar.dll` + `.pdb` (belum uji in-game)
 
-### M1 — Data layer (⬜ belum)
-- [ ] `StbApi`: `GetModuleHandleA("STB_HotkeySystem.dll")` + `RequestAPI(1)` di `kPostLoad`, graceful bila null
-- [ ] `BindingRegistry` 3 lapis:
-  1. sweep keycode saat load + rebuild paksa (single-key semua device)
-  2. capture pasif tiap `AddInputEvent` (chord + grup, selalu `return false`)
-  3. probe inventory/spellbook via dirty-flag + TTL 0,5 dtk, bertahap ~200 kandidat/tick
-- [ ] Kunci kanonis: item `{form, ench, health}`, key `{device, keyCount, keys[2]}`
-- [ ] `KeyLabel`: scancode/mouse/gamepad → label + kandidat nama file ikon keycap
-- [ ] `ItemClassifier`: nama + kategori → warna
-- [ ] Tes Catch2 pertama (`KeyLabel`, `ItemClassifier`, `SlotEngine`)
+### M1 — Data layer (🟡 kode ditulis, menunggu CI)
+- [x] `KeyLabel.h/.cpp`: DX scancode/mouse/gamepad → label + kandidat stem ikon (tabel keyboard 78 entri + mouse + gamepad, `DigitSlotIndex` untuk slot 1–10)
+- [x] `ItemClassifier.h` + `ItemClassifier.cpp`/`ItemClassifier2.cpp`: deskriptor → kategori + warna border + ID ikon (senjata per tipe, armor per slot mask, spell per school + warna resist fire/frost/shock, power, shout, scroll, consumable, soul gem, torch, misc)
+- [x] `BindingRegistry.h/.cpp`: snapshot kanonis `{form,ench,health}` + `{device,keyCount,keys}`, merge `Rebuild` (pinned bertahan jadi stale), `NotePressed` (aturan buffer STB Resolve), `SetPinned`/`SetName`
+- [x] `StbAdapter.h/.cpp` (khusus target plugin): `ResolveStbApi` via `GetModuleHandleA` + `RequestAPI(1)`, `SweepSingleKeys` (~528 panggilan), `HasChord`, `ResolvePress`
+- [x] `Plugin.cpp`: resolve API di `kPostLoad`, sweep di `kDataLoaded`, log status di `MMOHotbar.log`
+- [x] `tests/DataLayer.cpp`: 7 TEST_CASE Catch2 (key label, slot digit, classifier senjata/spell/armor, merge registry pinned/stale, grup NotePressed + aturan buffer)
+- [x] CI menjalankan `ctest` (`-DENABLE_TESTS=ON -DBUILD_TESTING=ON`)
+- [ ] CI hijau (push berikutnya); in-game: log `STB Hotkey System API: resolved (v1)` + `bindings: sweep done`
 
 ### M2 — HUD hotbar (⬜ belum)
 - [ ] Slot persegi via `AddHudElement` + `ImDrawListManager`, label key + nama terpotong + border warna kategori
